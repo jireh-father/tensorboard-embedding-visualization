@@ -9,12 +9,10 @@ NUM_CHANNELS = 1
 NUM_LABELS = 10
 BATCH_SIZE = 64
 
-FLAGS = tf.app.flags.FLAGS
+test_path = os.path.dirname(os.path.realpath(__file__))
 
-tf.app.flags.DEFINE_string('test_path', "/tmp/embed_test", "path")
-
-if not os.path.exists(FLAGS.test_path):
-    os.makedirs(FLAGS.test_path)
+if not os.path.exists(test_path):
+    os.makedirs(test_path)
 
 
 def model():
@@ -45,15 +43,15 @@ def model():
 
 model()
 
-data_sets = input_data.read_data_sets(FLAGS.test_path, validation_size=BATCH_SIZE)
+data_sets = input_data.read_data_sets(test_path, validation_size=BATCH_SIZE)
 
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 saver = tf.train.Saver()
-saver.restore(sess, os.path.join(FLAGS.test_path, 'model.ckpt'))
+saver.restore(sess, os.path.join(test_path, 'model.ckpt'))
 
 batch_dataset, batch_labels = data_sets.validation.next_batch(BATCH_SIZE)
 batch_dataset = batch_dataset.reshape((-1, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS)).astype(np.float32)
 
-embedder.summary_embedding_with_labels(sess, batch_dataset, batch_labels, FLAGS.test_path, IMAGE_SIZE, NUM_CHANNELS)
+embedder.summary_embedding_with_labels(sess, batch_dataset, batch_labels, test_path, IMAGE_SIZE, NUM_CHANNELS)

@@ -1,5 +1,6 @@
 import tensorflow as tf
 import summarizer
+import os
 from tensorflow.examples.tutorials.mnist import input_data
 
 IMAGE_SIZE = 28
@@ -11,6 +12,9 @@ BATCH_SIZE = 64
 FLAGS = tf.app.flags.FLAGS
 
 tf.app.flags.DEFINE_string('path', "/tmp/embed", "path")
+
+if not os.path.exists(FLAGS.path):
+    os.makedirs(FLAGS.path)
 
 input_placeholder = tf.placeholder(tf.float32, shape=(BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS))
 

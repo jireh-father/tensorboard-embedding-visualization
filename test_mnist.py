@@ -57,8 +57,8 @@ saver = tf.train.Saver()
 saver.restore(sess, os.path.join(test_path, 'model.ckpt'))
 
 # 5. summary embedding with labels
-# embedder.summary_embedding_with_labels(sess, batch_dataset, batch_labels, test_path, IMAGE_SIZE, NUM_CHANNELS,
-#                                        input_placeholder=input_placeholder, layer_op_list=[logits])
+embedder.summary_embedding_with_labels(sess, batch_dataset, batch_labels, test_path, IMAGE_SIZE, NUM_CHANNELS)
 
 # if you summary the last layer's embedding
-# embedder.summary_embedding_with_labels(sess, batch_dataset, batch_labels, test_path, IMAGE_SIZE, NUM_CHANNELS)
+# embedder.summary_embedding_with_labels(sess, batch_dataset, batch_labels, test_path, IMAGE_SIZE, NUM_CHANNELS,
+#                                        input_placeholder=input_placeholder, layer_op_list=[logits])

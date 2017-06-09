@@ -49,6 +49,9 @@ embedder.summary_embedding_test(sess, batch_dataset, input_placeholder, argmax_o
 ```
 
 
+---
+
+
 ## Running the tests
 
 ```shell
@@ -57,6 +60,9 @@ tensorboard --log_dir=./
 ```
 
 This should print that TensorBoard has started. Next, connect http://localhost:6006 and click the EMBEDDINGS menu.
+
+
+---
 
 
 ## API Reference
@@ -70,6 +76,9 @@ def summary_embedding_no_labels(sess, dataset, summary_dir, image_size, channel=
 
 def summary_embedding_test(sess, dataset, input_placeholder, argmax_op, summary_dir, image_size, channel=3, batch_size=64, layer_op_list=None):
 ```
+
+
+---
 
 
 ## Acknowledgments

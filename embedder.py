@@ -28,7 +28,8 @@ def summary_embedding(sess, dataset, labels, layer_outputs, image_size, channel,
     config = projector.ProjectorConfig()
     embed_tensors = []
     #
-    embed_tensor = tf.Variable(dataset, name='dataset')
+    enbed_dataset = dataset.reshape((-1, image_size * image_size)).astype(np.float32)
+    embed_tensor = tf.Variable(enbed_dataset, name='dataset')
     embed_tensors.append(embed_tensor)
     sess.run(embed_tensor.initializer)
     write_projector_config(config, embed_tensor.name, output_path, image_size, channel, summary_writer, labels)

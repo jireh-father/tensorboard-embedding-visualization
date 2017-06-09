@@ -1,5 +1,5 @@
 # tensorboard-embedding-visualization
-Visualize embedding on tensorboard with thumbnail images.
+Easily visualize embedding on tensorboard with thumbnail images and labels.
 
 ![alt text](https://raw.githubusercontent.com/jireh-father/tensorboard-embedding-visualization/master/mnist_embedding_visualization.jpg)
 

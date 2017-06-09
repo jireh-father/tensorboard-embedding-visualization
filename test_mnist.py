@@ -11,7 +11,7 @@ BATCH_SIZE = 64
 
 FLAGS = tf.app.flags.FLAGS
 
-tf.app.flags.DEFINE_string('test_path', "/tmp/embed_test/model.ckpt", "path")
+tf.app.flags.DEFINE_string('test_path', "/tmp/embed_test", "path")
 
 if not os.path.exists(FLAGS.test_path):
     os.makedirs(FLAGS.test_path)
@@ -53,7 +53,7 @@ sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 saver = tf.train.Saver()
-saver.restore(sess, FLAGS.test_path)
+saver.restore(sess, os.path.join(FLAGS.test_path, 'model.ckpt'))
 
 logits, conv_layer = model(input_placeholder)
 batch_dataset, batch_labels = data_sets.validation.next_batch(BATCH_SIZE)

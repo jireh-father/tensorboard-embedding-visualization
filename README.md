@@ -52,7 +52,7 @@ embedder.summary_embedding_test(sess, batch_dataset, input_placeholder, argmax_o
 ---
 
 
-## Running the tests
+## Running mnist test
 
 ```shell
 python test_mnist.py

@@ -31,7 +31,7 @@ embedder.summary_embedding_with_labels(sess, batch_dataset, batch_labels, test_p
 
 # if you want to embed other layers.
 input_placeholder = tf.placeholder(tf.float32, shape=(BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS))
-logits = model()
+logits = model(input_placeholder)
 embedder.summary_embedding_with_labels(sess, batch_dataset, batch_labels, test_path, IMAGE_SIZE, NUM_CHANNELS, input_placeholder=input_placeholder, layer_op_list=[logits])
 
 # if you have no labels.
@@ -39,6 +39,8 @@ embedder.summary_embedding_no_labels(sess, batch_dataset, test_path, IMAGE_SIZE,
 
 # if you have no labels, but you want to get the results to labels.
 input_placeholder = tf.placeholder(tf.float32, shape=(BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS))
+logits = model(input_placeholder)
+argmax_op = tf.argmax(softmax = tf.nn.softmax(logits), 1)
 embedder.summary_embedding_test(sess, batch_dataset, input_placeholder, argmax_op, test_path, IMAGE_SIZE, NUM_CHANNELS)
 ```
 

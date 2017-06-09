@@ -29,7 +29,7 @@ import embedder
 # if you have labels.
 embedder.summary_embedding_with_labels(sess, batch_dataset, batch_labels, test_path, IMAGE_SIZE, NUM_CHANNELS)
 
-# if you want embedding other layers.
+# if you want to embed other layers.
 input_placeholder = tf.placeholder(tf.float32, shape=(BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS))
 logits = model()
 embedder.summary_embedding_with_labels(sess, batch_dataset, batch_labels, test_path, IMAGE_SIZE, NUM_CHANNELS, input_placeholder=input_placeholder, layer_op_list=[logits])

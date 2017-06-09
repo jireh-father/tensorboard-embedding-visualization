@@ -1,6 +1,7 @@
 import tensorflow as tf
 import summarizer
 import os
+import numpy as np
 from tensorflow.examples.tutorials.mnist import input_data
 
 IMAGE_SIZE = 28
@@ -48,11 +49,12 @@ data_sets = input_data.read_data_sets(FLAGS.path, validation_size=BATCH_SIZE)
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
-saver = tf.train.Saver()
-saver.restore(sess, FLAGS.path)
+# saver = tf.train.Saver()
+# saver.restore(sess, FLAGS.path)
 
 logits, conv_layer = model(input_placeholder)
 batch_dataset, batch_labels = data_sets.validation.next_batch(BATCH_SIZE)
+batch_dataset = batch_dataset.reshape((-1, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS)).astype(np.float32)
 
 summarizer.summary_embedding_with_labels(sess, batch_dataset, batch_labels, [conv_layer], input_placeholder, FLAGS.path,
                                          IMAGE_SIZE, NUM_CHANNELS, BATCH_SIZE)

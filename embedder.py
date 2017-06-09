@@ -95,7 +95,7 @@ def make_metadata(labels, output_path):
 def make_embed_tensor(sess, dataset, image_size):
     enbed_dataset = dataset.reshape((-1, image_size * image_size)).astype(np.float32)
     embed_tensor = tf.Variable(enbed_dataset, name='embed')
-    # sess.run(embed_tensor.initializer)
+    sess.run(embed_tensor.initializer)
     return embed_tensor.name
 
 

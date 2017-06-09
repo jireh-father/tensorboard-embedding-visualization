@@ -5,32 +5,115 @@ import numpy as np
 import tensorflow as tf
 
 
-def summary_embedding_with_labels(sess, dataset, labels, summary_dir, image_size, channel=3):
-    summary_embedding(sess, dataset, image_size, channel, summary_dir, labels)
+def summary_embedding_with_labels(sess, dataset, labels, summary_dir, image_size, channel=3, batch_size=64,
+                                  input_placeholder=None, layer_op_list=None):
+    if layer_op_list is not None:
+        layer_outputs = run_layers(sess=sess, layer_op_list=layer_op_list, images=dataset,
+                                   input_placeholder=input_placeholder, batch_size=batch_size)
+
+        embeddings = [dataset] + layer_outputs
+
+    else:
+        embeddings = [dataset]
+
+    summary_embedding(sess, embeddings, image_size, channel, summary_dir, labels)
 
 
-def summary_embedding_no_labels(sess, dataset, summary_dir, image_size, channel=3):
-    summary_embedding(sess, dataset, image_size, channel, summary_dir)
+def summary_embedding_no_labels(sess, dataset, summary_dir, image_size, channel=3, batch_size=64,
+                                input_placeholder=None, layer_op_list=None):
+    if layer_op_list is not None:
+        layer_outputs = run_layers(sess=sess, layer_op_list=layer_op_list, images=dataset,
+                                   input_placeholder=input_placeholder, batch_size=batch_size)
+
+        embeddings = [dataset] + layer_outputs
+
+    else:
+        embeddings = [dataset]
+
+    summary_embedding(sess, embeddings, image_size, channel, summary_dir)
 
 
-def summary_embedding(sess, dataset, image_size, channel, output_path, labels=None):
+def summary_embedding_test(sess, dataset, input_placeholder, argmax_op, summary_dir, image_size, channel=3,
+                           batch_size=64, layer_op_list=None):
+    layer_outputs, labels = run_layers_test(sess=sess, layer_op_list=layer_op_list, images=dataset,
+                                            input_placeholder=input_placeholder, argmax_op=argmax_op,
+                                            batch_size=batch_size)
+
+    if layer_outputs is not None and len(layer_outputs) > 0:
+        embeddings = [dataset] + layer_outputs
+    else:
+        embeddings = [dataset]
+
+    summary_embedding(sess, embeddings, image_size, channel, summary_dir, labels)
+
+
+def summary_embedding(sess, embedding_list, image_size, channel, output_path, labels=None):
     if not os.path.exists(output_path):
         os.makedirs(output_path)
+
+    if len(embedding_list[0].shape) == 2:
+        embedding_list[0] = embedding_list[0].reshape((-1, image_size * image_size * channel))
 
     summary_writer = tf.summary.FileWriter(output_path, sess.graph)
 
     config = projector.ProjectorConfig()
-    embed_tensor = make_embed_tensor(sess, dataset, image_size)
-    write_projector_config(config, embed_tensor.name, output_path, image_size, channel, summary_writer, labels)
+
+    for embed_idx, embed_vectors in enumerate(embedding_list):
+        embed_tensor = make_embed_tensor(sess, embed_vectors, image_size, channel, embed_idx)
+        write_projector_config(config, embed_tensor.name, output_path, image_size, channel, summary_writer, labels)
 
     summary_writer.close()
 
-    save_model(sess, output_path, embed_tensor)
+    save_model(sess, output_path)
 
     # Make sprite and labels.
-    make_sprite(dataset, image_size, channel, output_path)
+    make_sprite(embedding_list[0], image_size, channel, output_path)
     if labels is not None and len(labels) > 0:
         make_metadata(labels, output_path)
+
+
+def run_layers(sess, layer_op_list, images, input_placeholder, batch_size=32):
+    layer_outputs = [[] for i in range(len(layer_op_list))]
+
+    for i in range(0, len(images), batch_size):
+        batch_data = images[i:i + batch_size]
+        if len(batch_data) < batch_size:
+            break
+        feed_dict = {input_placeholder: batch_data}
+        results = sess.run(layer_op_list, feed_dict=feed_dict)
+
+        for j, layer_output in enumerate(layer_outputs):
+            layer_output.append(results[j])
+
+    return layer_outputs
+
+
+def run_layers_test(sess, images, input_placeholder, argmax_op, layer_op_list=None, batch_size=32):
+    if argmax_op is None:
+        return None, None
+
+    if layer_op_list is not None:
+        layer_outputs = [[] for i in range(len(layer_op_list))]
+    else:
+        layer_outputs = None
+
+    argmax_outputs = []
+
+    for i in range(0, len(images), batch_size):
+        batch_data = images[i:i + batch_size]
+        if len(batch_data) < batch_size:
+            break
+        feed_dict = {input_placeholder: batch_data}
+        if layer_op_list is not None:
+            results = sess.run(layer_op_list + [argmax_op], feed_dict=feed_dict)
+            for j, layer_output in enumerate(layer_outputs):
+                layer_output.append(results[j])
+        else:
+            results = sess.run([argmax_op], feed_dict=feed_dict)
+
+        argmax_outputs.append(results[-1])
+
+    return layer_outputs, argmax_outputs
 
 
 def images_to_sprite(data):
@@ -80,9 +163,14 @@ def make_metadata(labels, output_path):
     metadata_file.close()
 
 
-def make_embed_tensor(sess, dataset, image_size):
-    enbed_dataset = dataset.reshape((-1, image_size * image_size)).astype(np.float32)
-    embed_tensor = tf.Variable(enbed_dataset, name='embed')
+def make_embed_tensor(sess, embed_vectors, image_size, channel, embed_idx):
+    if embed_idx == 0:
+        embed_dataset = embed_vectors.reshape((-1, image_size * image_size * channel)).astype(np.float32)
+        embed_tensor = tf.Variable(embed_dataset, name='embed')
+    else:
+        embed_tensor = tf.Variable(np.array(embed_vectors).reshape(len(embed_vectors) * embed_vectors[0].shape[0], -1),
+                                   name=('embed_%s' % embed_idx))
+
     sess.run(embed_tensor.initializer)
     return embed_tensor
 
@@ -100,6 +188,7 @@ def write_projector_config(config, tensor_name, output_path, image_size, channel
     projector.visualize_embeddings(summary_writer, config)
 
 
-def save_model(sess, output_path, embed_tensor):
-    saver = tf.train.Saver([embed_tensor])
+def save_model(sess, output_path):
+    # saver = tf.train.Saver([embed_tensor])
+    saver = tf.train.Saver()
     saver.save(sess, os.path.join(output_path, 'model_embed.ckpt'))

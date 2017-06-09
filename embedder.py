@@ -5,85 +5,43 @@ import numpy as np
 import tensorflow as tf
 
 
-def summary_embedding_with_labels(sess, dataset, labels, layer_op_list, input_placeholder, summary_dir, image_size,
+def summary_embedding_with_labels(sess, dataset, labels, input_placeholder, summary_dir, image_size,
                                   channel=3, batch_size=100):
-    layer_outputs = run_layers(sess, layer_op_list, dataset, input_placeholder, batch_size)
-
-    summary_embedding(sess, dataset, labels, layer_outputs, image_size, channel, summary_dir)
+    summary_embedding(sess, dataset, image_size, channel, summary_dir, labels)
 
 
-def summary_embedding_no_labels(sess, dataset, layer_op_list, input_placeholder, summary_dir, image_size,
+def summary_embedding_no_labels(sess, dataset, input_placeholder, summary_dir, image_size,
                                 argmax_op=None, channel=3, batch_size=100):
-    layer_outputs, labels = run_layers_test(sess, layer_op_list, dataset, input_placeholder, argmax_op, batch_size)
-
-    summary_embedding(sess, dataset, labels, layer_outputs, image_size, channel, summary_dir)
+    summary_embedding(sess, dataset, image_size, channel, summary_dir)
 
 
-def summary_embedding(sess, dataset, labels, layer_outputs, image_size, channel, output_path):
+def summary_embedding(sess, dataset, image_size, channel, output_path, labels=None):
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
     summary_writer = tf.summary.FileWriter(output_path, sess.graph)
 
     config = projector.ProjectorConfig()
-    embed_tensors = []
+
+    # enbed_dataset = dataset.reshape((-1, image_size * image_size)).astype(np.float32)
+    # embed_tensor = tf.Variable(enbed_dataset, name='dataset')
+    # embed_tensors.append(embed_tensor)
+    # sess.run(embed_tensor.initializer)
+
+    tensor_name = make_embed_tensor(sess, dataset)
+    write_projector_config(config, tensor_name, output_path, image_size, channel, summary_writer, labels)
     #
-    enbed_dataset = dataset.reshape((-1, image_size * image_size)).astype(np.float32)
-    embed_tensor = tf.Variable(enbed_dataset, name='dataset')
-    embed_tensors.append(embed_tensor)
-    sess.run(embed_tensor.initializer)
-    write_projector_config(config, embed_tensor.name, output_path, image_size, channel, summary_writer, labels)
-    #
-    for embed_idx, embed_vectors in enumerate(layer_outputs):
-        tensor_name = make_embed_tensor(sess, embed_vectors, embed_idx, embed_tensors)
-        write_projector_config(config, tensor_name, output_path, image_size, channel, summary_writer, labels)
+    # for embed_idx, embed_vectors in enumerate(layer_outputs):
+    #     tensor_name = make_embed_tensor(sess, embed_vectors, embed_idx, embed_tensors)
+    #     write_projector_config(config, tensor_name, output_path, image_size, channel, summary_writer, labels)
     summary_writer.close()
 
-    save_model(sess, embed_tensors, output_path)
+    save_model(sess, None, output_path)
 
     # Make sprite and labels.
     make_sprite(dataset, image_size, channel, output_path)
     if labels is not None and len(labels) > 0:
         make_metadata(labels, output_path)
-
-
-def run_layers(sess, layer_op_list, images, input_placeholder, batch_size=32):
-    layer_outputs = [[] for i in range(len(layer_op_list))]
-
-    for i in range(0, len(images), batch_size):
-        batch_data = images[i:i + batch_size]
-        if len(batch_data) < batch_size:
-            break
-        feed_dict = {input_placeholder: batch_data}
-        results = sess.run(layer_op_list, feed_dict=feed_dict)
-
-        for j, layer_output in enumerate(layer_outputs):
-            layer_output.append(results[j])
-
-    return layer_outputs
-
-
-def run_layers_test(sess, layer_op_list, images, input_placeholder, argmax_op=None, batch_size=32):
-    layer_outputs = [[] for i in range(len(layer_op_list))]
-    argmax_outputs = []
-
-    for i in range(0, len(images), batch_size):
-        batch_data = images[i:i + batch_size]
-        if len(batch_data) < batch_size:
-            break
-        feed_dict = {input_placeholder: batch_data}
-        if argmax_op is not None:
-            results = sess.run(layer_op_list + [argmax_op], feed_dict=feed_dict)
-        else:
-            results = sess.run(layer_op_list, feed_dict=feed_dict)
-
-        for j, layer_output in enumerate(layer_outputs):
-            layer_output.append(results[j])
-
-        if argmax_op is not None:
-            argmax_outputs.append(results[-1])
-
-    return layer_outputs, argmax_outputs
 
 
 def images_to_sprite(data):
@@ -134,11 +92,10 @@ def make_metadata(labels, output_path):
     metadata_file.close()
 
 
-def make_embed_tensor(sess, embed_vectors, embed_idx, embed_tensors):
-    embed_tensor = tf.Variable(np.array(embed_vectors).reshape(len(embed_vectors) * embed_vectors[0].shape[0], -1),
-                               name=('embed_%s' % embed_idx))
-    embed_tensors.append(embed_tensor)
-    sess.run(embed_tensor.initializer)
+def make_embed_tensor(sess, dataset, image_size):
+    enbed_dataset = dataset.reshape((-1, image_size * image_size)).astype(np.float32)
+    embed_tensor = tf.Variable(enbed_dataset, name='embed')
+    # sess.run(embed_tensor.initializer)
     return embed_tensor.name
 
 
@@ -156,6 +113,7 @@ def write_projector_config(config, tensor_name, output_path, image_size, channel
 
 
 def save_model(sess, embed_tensors, output_path):
-    sess.run(embed_tensors)
-    saver = tf.train.Saver(embed_tensors)
+    # sess.run(embed_tensors)
+    # saver = tf.train.Saver(embed_tensors)
+    saver = tf.train.Saver()
     saver.save(sess, os.path.join(output_path, 'model_embed.ckpt'))

@@ -20,12 +20,12 @@ def summary_embedding(sess, dataset, image_size, channel, output_path, labels=No
     summary_writer = tf.summary.FileWriter(output_path, sess.graph)
 
     config = projector.ProjectorConfig()
-    tensor_name = make_embed_tensor(sess, dataset, image_size)
-    write_projector_config(config, tensor_name, output_path, image_size, channel, summary_writer, labels)
+    embed_tensor = make_embed_tensor(sess, dataset, image_size)
+    write_projector_config(config, embed_tensor.name, output_path, image_size, channel, summary_writer, labels)
 
     summary_writer.close()
 
-    save_model(sess, output_path)
+    save_model(sess, output_path, embed_tensor)
 
     # Make sprite and labels.
     make_sprite(dataset, image_size, channel, output_path)
@@ -84,7 +84,7 @@ def make_embed_tensor(sess, dataset, image_size):
     enbed_dataset = dataset.reshape((-1, image_size * image_size)).astype(np.float32)
     embed_tensor = tf.Variable(enbed_dataset, name='embed')
     sess.run(embed_tensor.initializer)
-    return embed_tensor.name
+    return embed_tensor
 
 
 def write_projector_config(config, tensor_name, output_path, image_size, channel, summary_writer, labels):
@@ -100,6 +100,6 @@ def write_projector_config(config, tensor_name, output_path, image_size, channel
     projector.visualize_embeddings(summary_writer, config)
 
 
-def save_model(sess, output_path):
-    saver = tf.train.Saver()
+def save_model(sess, output_path, embed_tensor):
+    saver = tf.train.Saver(embed_tensor)
     saver.save(sess, os.path.join(output_path, 'model_embed.ckpt'))

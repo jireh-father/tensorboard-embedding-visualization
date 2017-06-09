@@ -8,8 +8,8 @@ import tensorflow as tf
 def summary_embedding_with_labels(sess, dataset, labels, summary_dir, image_size, channel=3, batch_size=64,
                                   input_placeholder=None, layer_op_list=None):
     if len(dataset.shape) == 2:
-        dataset = dataset.reshape((-1, image_size * image_size * channel))
-        
+        dataset = dataset.reshape((-1, image_size, image_size, channel))
+
     if layer_op_list is not None:
         layer_outputs = run_layers(sess=sess, layer_op_list=layer_op_list, images=dataset,
                                    input_placeholder=input_placeholder, batch_size=batch_size)
@@ -25,7 +25,7 @@ def summary_embedding_with_labels(sess, dataset, labels, summary_dir, image_size
 def summary_embedding_no_labels(sess, dataset, summary_dir, image_size, channel=3, batch_size=64,
                                 input_placeholder=None, layer_op_list=None):
     if len(dataset.shape) == 2:
-        dataset = dataset.reshape((-1, image_size * image_size * channel))
+        dataset = dataset.reshape((-1, image_size, image_size, channel))
 
     if layer_op_list is not None:
         layer_outputs = run_layers(sess=sess, layer_op_list=layer_op_list, images=dataset,
@@ -42,7 +42,7 @@ def summary_embedding_no_labels(sess, dataset, summary_dir, image_size, channel=
 def summary_embedding_test(sess, dataset, input_placeholder, argmax_op, summary_dir, image_size, channel=3,
                            batch_size=64, layer_op_list=None):
     if len(dataset.shape) == 2:
-        dataset = dataset.reshape((-1, image_size * image_size * channel))
+        dataset = dataset.reshape((-1, image_size, image_size, channel))
 
     layer_outputs, labels = run_layers_test(sess=sess, layer_op_list=layer_op_list, images=dataset,
                                             input_placeholder=input_placeholder, argmax_op=argmax_op,
@@ -59,6 +59,9 @@ def summary_embedding_test(sess, dataset, input_placeholder, argmax_op, summary_
 def summary_embedding(sess, embedding_list, image_size, channel, output_path, labels=None):
     if not os.path.exists(output_path):
         os.makedirs(output_path)
+
+    if len(embedding_list[0].shape) == 2:
+        embedding_list[0] = embedding_list[0].reshape((-1, image_size * image_size * channel))
 
     summary_writer = tf.summary.FileWriter(output_path, sess.graph)
 

@@ -1,5 +1,5 @@
 import tensorflow as tf
-import summarizer
+import embedder
 import os
 import numpy as np
 from tensorflow.examples.tutorials.mnist import input_data
@@ -7,29 +7,28 @@ from tensorflow.examples.tutorials.mnist import input_data
 IMAGE_SIZE = 28
 NUM_CHANNELS = 1
 NUM_LABELS = 10
-SEED = 66478
 BATCH_SIZE = 64
 
 FLAGS = tf.app.flags.FLAGS
 
-tf.app.flags.DEFINE_string('path', "/tmp/embed", "path")
+tf.app.flags.DEFINE_string('test_path', "/tmp/embed_test/model.ckpt", "path")
 
-if not os.path.exists(FLAGS.path):
-    os.makedirs(FLAGS.path)
+if not os.path.exists(FLAGS.test_path):
+    os.makedirs(FLAGS.test_path)
 
 input_placeholder = tf.placeholder(tf.float32, shape=(BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS))
 
-conv1_weights = tf.Variable(tf.truncated_normal([5, 5, NUM_CHANNELS, 32], stddev=0.1, seed=SEED, dtype=tf.float32),
+conv1_weights = tf.Variable(tf.truncated_normal([5, 5, NUM_CHANNELS, 32], stddev=0.1, dtype=tf.float32),
                             name='conv1_weights')
 conv1_biases = tf.Variable(tf.zeros([32], dtype=tf.float32), name='conv1_biases')
-conv2_weights = tf.Variable(tf.truncated_normal([5, 5, 32, 64], stddev=0.1, seed=SEED, dtype=tf.float32),
+conv2_weights = tf.Variable(tf.truncated_normal([5, 5, 32, 64], stddev=0.1, dtype=tf.float32),
                             name='conv2_weights')
 conv2_biases = tf.Variable(tf.constant(0.1, shape=[64], dtype=tf.float32), name='conv2_biases')
 fc1_weights = tf.Variable(
-    tf.truncated_normal([IMAGE_SIZE // 4 * IMAGE_SIZE // 4 * 64, 512], stddev=0.1, seed=SEED, dtype=tf.float32),
+    tf.truncated_normal([IMAGE_SIZE // 4 * IMAGE_SIZE // 4 * 64, 512], stddev=0.1, dtype=tf.float32),
     name='fc1_weights')
 fc1_biases = tf.Variable(tf.constant(0.1, shape=[512], dtype=tf.float32), name='fc1_biases')
-fc2_weights = tf.Variable(tf.truncated_normal([512, NUM_LABELS], stddev=0.1, seed=SEED, dtype=tf.float32),
+fc2_weights = tf.Variable(tf.truncated_normal([512, NUM_LABELS], stddev=0.1, dtype=tf.float32),
                           name='fc2_weights')
 fc2_biases = tf.Variable(tf.constant(0.1, shape=[NUM_LABELS], dtype=tf.float32), name='fc2_biases')
 
@@ -48,17 +47,18 @@ def model(data):
     return tf.matmul(hidden, fc2_weights, name='matmul') + fc2_biases, conv
 
 
-data_sets = input_data.read_data_sets(FLAGS.path, validation_size=BATCH_SIZE)
+data_sets = input_data.read_data_sets(FLAGS.test_path, validation_size=BATCH_SIZE)
 
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 saver = tf.train.Saver()
-saver.restore(sess, FLAGS.path)
+saver.restore(sess, FLAGS.test_path)
 
 logits, conv_layer = model(input_placeholder)
 batch_dataset, batch_labels = data_sets.validation.next_batch(BATCH_SIZE)
 batch_dataset = batch_dataset.reshape((-1, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS)).astype(np.float32)
 
-summarizer.summary_embedding_with_labels(sess, batch_dataset, batch_labels, [conv_layer], input_placeholder, FLAGS.path,
-                                         IMAGE_SIZE, NUM_CHANNELS, BATCH_SIZE)
+embedder.summary_embedding_with_labels(sess, batch_dataset, batch_labels, [conv_layer], input_placeholder,
+                                       FLAGS.test_path,
+                                       IMAGE_SIZE, NUM_CHANNELS, BATCH_SIZE)

@@ -28,7 +28,7 @@ def summary_embedding(sess, dataset, image_size, channel, output_path, labels=No
     # embed_tensors.append(embed_tensor)
     # sess.run(embed_tensor.initializer)
 
-    tensor_name = make_embed_tensor(sess, dataset)
+    tensor_name = make_embed_tensor(sess, dataset, image_size)
     write_projector_config(config, tensor_name, output_path, image_size, channel, summary_writer, labels)
     #
     # for embed_idx, embed_vectors in enumerate(layer_outputs):

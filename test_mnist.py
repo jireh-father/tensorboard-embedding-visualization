@@ -40,7 +40,7 @@ def model(data):
     reshape = tf.reshape(pool, [pool_shape[0], pool_shape[1] * pool_shape[2] * pool_shape[3]])
     hidden = tf.nn.relu(tf.matmul(reshape, fc1_weights) + fc1_biases)
 
-    return tf.matmul(hidden, fc2_weights) + fc2_biases, conv
+    return tf.matmul(hidden, fc2_weights) + fc2_biases
 
 
 data_sets = input_data.read_data_sets(FLAGS.test_path, validation_size=BATCH_SIZE)
@@ -51,10 +51,9 @@ sess.run(tf.global_variables_initializer())
 saver = tf.train.Saver()
 saver.restore(sess, os.path.join(FLAGS.test_path, 'model.ckpt'))
 
-logits, conv_layer = model(input_placeholder)
+logits = model(input_placeholder)
 batch_dataset, batch_labels = data_sets.validation.next_batch(BATCH_SIZE)
 batch_dataset = batch_dataset.reshape((-1, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS)).astype(np.float32)
 
-embedder.summary_embedding_with_labels(sess, batch_dataset, batch_labels, [conv_layer], input_placeholder,
-                                       FLAGS.test_path,
+embedder.summary_embedding_with_labels(sess, batch_dataset, batch_labels, input_placeholder, FLAGS.test_path,
                                        IMAGE_SIZE, NUM_CHANNELS, BATCH_SIZE)

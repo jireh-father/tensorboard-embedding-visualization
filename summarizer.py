@@ -151,4 +151,4 @@ def write_projector_config(config, tensor_name, output_path, image_size, channel
 def save_model(sess, embed_tensors, output_path):
     sess.run(embed_tensors)
     saver = tf.train.Saver(embed_tensors)
-    saver.save(sess, os.path.join(output_path, 'model.ckpt'))
+    saver.save(sess, os.path.join(output_path, 'model_embed.ckpt'))

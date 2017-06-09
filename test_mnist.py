@@ -18,7 +18,7 @@ if not os.path.exists(FLAGS.test_path):
 
 data_sets = input_data.read_data_sets(FLAGS.test_path, validation_size=BATCH_SIZE)
 
-sess = tf.Session()
+sess = tf.InteractiveSession()
 sess.run(tf.global_variables_initializer())
 
 saver = tf.train.Saver()

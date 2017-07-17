@@ -88,8 +88,11 @@ def run_layers(sess, layer_op_list, images, input_placeholder, batch_size=32):
         batch_data = images[i:i + batch_size]
         if len(batch_data) < batch_size:
             break
-        feed_dict = {input_placeholder: batch_data}
-        results = sess.run(layer_op_list, feed_dict=feed_dict)
+        if input_placeholder:
+            feed_dict = {input_placeholder: batch_data}
+            results = sess.run(layer_op_list, feed_dict=feed_dict)
+        else:
+            results = sess.run(layer_op_list)
 
         for j, layer_output in enumerate(layer_outputs):
             layer_output.append(results[j])
@@ -177,7 +180,9 @@ def make_embed_tensor(sess, embed_vectors, image_size, channel, embed_idx):
         embed_dataset = embed_vectors.reshape((-1, image_size * image_size * channel)).astype(np.float32)
         embed_tensor = tf.Variable(embed_dataset, name='embed')
     else:
-        embed_tensor = tf.Variable(np.array(embed_vectors).reshape(len(embed_vectors) * embed_vectors[0].shape[0], -1),
+        # embed_tensor = tf.Variable(np.array(embed_vectors).reshape(len(embed_vectors) * embed_vectors[0].shape[0], -1),
+        #                            name=('embed_%s' % embed_idx))
+        embed_tensor = tf.Variable(np.array(embed_vectors).reshape(embed_vectors[0].shape[0], -1),
                                    name=('embed_%s' % embed_idx))
 
     sess.run(embed_tensor.initializer)

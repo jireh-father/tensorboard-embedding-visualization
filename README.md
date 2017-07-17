@@ -1,6 +1,8 @@
 # tensorboard-embedding-visualization
 Easily visualize embedding on tensorboard with thumbnail images and labels.
 
+Currently this repo is compatible with Tensorflow r1.0.1
+
 ![alt text](https://raw.githubusercontent.com/jireh-father/tensorboard-embedding-visualization/master/mnist_embedding_visualization.jpg)
 
 

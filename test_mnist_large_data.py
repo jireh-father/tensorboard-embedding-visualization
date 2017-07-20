@@ -64,7 +64,7 @@ for i in range(10):
     feed_dict = {input_placeholder: batch_dataset.reshape([BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS])}
     activations = sess.run(logits, feed_dict)
 
-    if not total_dataset:
+    if total_dataset is None:
         total_dataset = batch_dataset
         total_labels = batch_labels
         total_activations = activations

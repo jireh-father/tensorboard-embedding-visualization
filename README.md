@@ -8,10 +8,10 @@ Currently this repo is compatible with Tensorflow r1.0.1
 
 ## Getting Started
 
-### 1. Load your model code, model file and dataset.
+### 1. Create your model graph, load your trained model and read your dataset and labels.
 ```python
-# load model code
-model()
+# create the model graph
+logits = model()
 
 # init session and restore pre-trained model file
 sess = tf.Session()
@@ -19,35 +19,23 @@ sess.run(tf.global_variables_initializer())
 saver = tf.train.Saver()
 saver.restore(sess, os.path.join(test_path, 'model.ckpt'))
 
-# load you dataset
-data_sets = read_data_sets()
+# read your dataset and labels
+data_sets, labels = read_data_sets()
+
+# run your model
+feed_dict = {input_placeholder: dataset, label_placeholder: labels}
+activations = sess.run(logits, feed_dict)
+
 ```
 
 
-### 2. Just import embedder.py and call summary_embedding_with_labels or summary_embedding_no_labels.
+### 2. Just import embedder.py and call summary_embedding function.
 ```python
 import embedder
 
-# case 1. if you have labels.
-embedder.summary_embedding_with_labels(sess, batch_dataset, batch_labels, test_path, IMAGE_SIZE, NUM_CHANNELS)
-
-# case 2. if you want to embed other layers.
-input_placeholder = tf.placeholder(tf.float32, shape=(BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS))
-logits = model(input_placeholder)
-
-embedder.summary_embedding_with_labels(sess, batch_dataset, batch_labels, test_path, IMAGE_SIZE, NUM_CHANNELS, input_placeholder=input_placeholder, layer_op_list=[logits])
-
-# case 3. if you have no labels.
-embedder.summary_embedding_no_labels(sess, batch_dataset, test_path, IMAGE_SIZE, NUM_CHANNELS)
-
-# case 4. if you have no labels, but you want to get the results to labels.
-input_placeholder = tf.placeholder(tf.float32, shape=(BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS))
-logits = model(input_placeholder)
-argmax_op = tf.argmax(softmax = tf.nn.softmax(logits), 1)
-
-embedder.summary_embedding_test(sess, batch_dataset, input_placeholder, argmax_op, test_path, IMAGE_SIZE, NUM_CHANNELS)
-
-# case ....
+embedder.summary_embedding(sess=sess, dataset=data_sets, embedding_list=[activations],
+                                       embedding_path="your embedding path", image_size=your_image_size, channel=3,
+                                       labels=labels)
 ```
 
 
@@ -70,13 +58,9 @@ This should print that TensorBoard has started. Next, connect http://localhost:6
 ## API Reference
 
 ```python
-def summary_embedding_with_labels(sess, dataset, labels, summary_dir, image_size, channel=3, batch_size=64, input_placeholder=None, layer_op_list=None):
+def summary_embedding(sess, dataset, embedding_list, embedding_path, image_size, channel=3, labels=None):
     pass
 
-def summary_embedding_no_labels(sess, dataset, summary_dir, image_size, channel=3, batch_size=64, input_placeholder=None, layer_op_list=None):
-    pass
-
-def summary_embedding_test(sess, dataset, input_placeholder, argmax_op, summary_dir, image_size, channel=3, batch_size=64, layer_op_list=None):
 ```
 
 

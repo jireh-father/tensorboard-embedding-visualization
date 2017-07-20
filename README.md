@@ -8,8 +8,9 @@ Currently this repo is compatible with Tensorflow r1.0.1
 
 ## Getting Started
 
-### 1. Create your model graph, load your trained model and read your dataset and labels.
 ```python
+import embedder
+
 # create the model graph
 logits = model()
 
@@ -26,27 +27,31 @@ data_sets, labels = read_data_sets()
 feed_dict = {input_placeholder: dataset, label_placeholder: labels}
 activations = sess.run(logits, feed_dict)
 
-```
-
-
-### 2. Just import embedder.py and call summary_embedding function.
-```python
-import embedder
-
 embedder.summary_embedding(sess=sess, dataset=data_sets, embedding_list=[activations],
                                        embedding_path="your embedding path", image_size=your_image_size, channel=3,
                                        labels=labels)
 ```
 
+
+### If you want use large data.
 ```python
 import embedder
 
-# If you want use large data.
+# create the model graph
+logits = model()
+
+# init session and restore pre-trained model file
+sess = tf.Session()
+sess.run(tf.global_variables_initializer())
+saver = tf.train.Saver()
+saver.restore(sess, os.path.join(test_path, 'model.ckpt'))
+
 total_dataset = []
 total_labels = []
 total_activations = []
 for i in range(10)
     data_sets, labels = get_batch(i)
+    feed_dict = {input_placeholder: dataset, label_placeholder: labels}
     activations = sess.run(logits, feed_dict)
 
     total_dataset = np.append(data_sets, total_dataset, axis=0)

@@ -46,7 +46,6 @@ input_placeholder, logits = model()
 
 # 2. load dataset to visualize embedding
 data_sets = input_data.read_data_sets(test_path, validation_size=BATCH_SIZE)
-batch_dataset, batch_labels = data_sets.validation.next_batch(BATCH_SIZE)
 
 # 3. init session
 sess = tf.Session()
@@ -56,10 +55,24 @@ sess.run(tf.global_variables_initializer())
 saver = tf.train.Saver()
 saver.restore(sess, os.path.join(test_path, 'model.ckpt'))
 
-feed_dict = {input_placeholder: batch_dataset.reshape([BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS])}
-activations = sess.run(logits, feed_dict)
+# 6. if you want to use large data
+total_dataset = None
+total_labels = None
+total_activations = None
+for i in range(10):
+    batch_dataset, batch_labels = data_sets.validation.next_batch(BATCH_SIZE)
+    feed_dict = {input_placeholder: batch_dataset.reshape([BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS])}
+    activations = sess.run(logits, feed_dict)
 
-# 5. summary embedding
-embedder.summary_embedding(sess=sess, dataset=batch_dataset, embedding_list=[activations],
-                           embedding_path=os.path.join(test_path, 'embedding'),
-                           image_size=IMAGE_SIZE, channel=NUM_CHANNELS, labels=batch_labels)
+    if not total_dataset:
+        total_dataset = batch_dataset
+        total_labels = batch_labels
+        total_activations = activations
+    else:
+        total_dataset = np.append(batch_dataset, total_dataset, axis=0)
+        total_labels = np.append(batch_labels, total_labels, axis=0)
+        total_activations = np.append(activations, total_activations, axis=0)
+
+embedder.summary_embedding(sess=sess, dataset=total_dataset, embedding_list=[total_activations],
+                           embedding_path=os.path.join(test_path, 'embedding'), image_size=IMAGE_SIZE,
+                           channel=NUM_CHANNELS, labels=total_labels)

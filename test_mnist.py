@@ -11,8 +11,8 @@ BATCH_SIZE = 64
 
 test_path = os.path.dirname(os.path.realpath(__file__))
 
-if not os.path.exists(test_path):
-    os.makedirs(test_path)
+if not os.path.exists(os.path.join(test_path, 'embedding')):
+    os.makedirs(os.path.join(test_path, 'embedding'))
 
 
 # 1. load model graph
@@ -60,5 +60,6 @@ feed_dict = {input_placeholder: batch_dataset}
 activations = sess.run(logits, feed_dict)
 
 # 5. summary embedding with labels
-embedder.summary_embedding(sess=sess, dataset=batch_dataset, embedding_list=[activations], embedding_path=test_path,
+embedder.summary_embedding(sess=sess, dataset=batch_dataset, embedding_list=[activations],
+                           embedding_path=os.path.join(test_path, 'embedding'),
                            image_size=IMAGE_SIZE, channel=NUM_CHANNELS, labels=batch_labels)

@@ -33,7 +33,7 @@ embedder.summary_embedding(sess=sess, dataset=data_sets, embedding_list=[activat
 ```
 
 
-### If you want use large data.
+### If you want to use large data.
 ```python
 import embedder
 

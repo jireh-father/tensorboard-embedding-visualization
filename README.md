@@ -70,6 +70,7 @@ embedder.summary_embedding(sess=sess, dataset=total_dataset, embedding_list=[tot
 
 ```shell
 python test_mnist.py
+(python test_mnist_large_data.py)
 tensorboard --log_dir=./
 ```
 

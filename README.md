@@ -38,6 +38,25 @@ embedder.summary_embedding(sess=sess, dataset=data_sets, embedding_list=[activat
                                        labels=labels)
 ```
 
+```python
+import embedder
+
+# If you want use large data.
+total_dataset = []
+total_labels = []
+total_activations = []
+for i in range(10)
+    data_sets, labels = get_batch(i)
+    activations = sess.run(logits, feed_dict)
+
+    total_dataset = np.append(data_sets, total_dataset, axis=0)
+    total_labels = np.append(labels, total_labels, axis=0)
+    total_activations = np.append(activations, total_activations, axis=0)
+
+embedder.summary_embedding(sess=sess, dataset=total_dataset, embedding_list=[total_activations],
+                                       embedding_path="your embedding path", image_size=your_image_size, channel=3,
+                                       labels=total_labels)
+```
 
 ---
 

@@ -11,7 +11,7 @@ Currently this repo is compatible with Tensorflow r1.0.1
 ```python
 import embedder
 
-# create the model graph
+# create the model graph and get the last layer's output.
 logits = model()
 
 # init session and restore pre-trained model file

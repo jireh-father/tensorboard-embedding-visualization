@@ -46,17 +46,21 @@ sess.run(tf.global_variables_initializer())
 saver = tf.train.Saver()
 saver.restore(sess, os.path.join(test_path, 'model.ckpt'))
 
-total_dataset = []
-total_labels = []
-total_activations = []
+total_dataset = None
+total_labels = None
+total_activations = None
 for i in range(10)
     data_sets, labels = get_batch(i)
     feed_dict = {input_placeholder: dataset, label_placeholder: labels}
     activations = sess.run(logits, feed_dict)
-
-    total_dataset = np.append(data_sets, total_dataset, axis=0)
-    total_labels = np.append(labels, total_labels, axis=0)
-    total_activations = np.append(activations, total_activations, axis=0)
+    if total_dataset is None:
+      total_dataset = data_sets
+      total_labels = labels
+      total_activations = activations
+    else:
+      total_dataset = np.append(data_sets, total_dataset, axis=0)
+      total_labels = np.append(labels, total_labels, axis=0)
+      total_activations = np.append(activations, total_activations, axis=0)
 
 embedder.summary_embedding(sess=sess, dataset=total_dataset, embedding_list=[total_activations],
                                        embedding_path="your embedding path", image_size=your_image_size, channel=3,

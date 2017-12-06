@@ -73,7 +73,8 @@ def make_sprite(dataset, image_size, channel, output_path):
 
 
 def make_metadata(labels, output_path):
-    labels = np.array(labels).flatten()
+    if len(labels.shape) == 2:
+        labels = labels.argmax(axis=1)
     metadata_file = open(os.path.join(output_path, 'labels.tsv'), 'w')
     metadata_file.write('Name\tClass\n')
     for i in range(len(labels)):
